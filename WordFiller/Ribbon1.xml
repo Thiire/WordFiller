@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui" onLoad="Ribbon_Load">
+  <ribbon>
+    <tabs>
+      <tab id="tabMyVeryOwnCustomTab" label="WordFiller">
+        <group id="AffichageGroup" label="Affichage">
+            <button id="toggleShowButton" onAction="OnShowControl" label="Afficher/Désactiver l'overlay" supertip="Affiche ou non WordFiller"/>
+            <button id="toggleColorButton" onAction="OnColorControl" label="Afficher/Désactiver la couleur" supertip="Affiche ou non la couleur des paramètres"/>
+        </group>  
+      </tab>
+    </tabs>
+  </ribbon>
+</customUI>
+
