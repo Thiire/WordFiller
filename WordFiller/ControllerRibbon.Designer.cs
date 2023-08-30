@@ -47,6 +47,7 @@
             this.repareButton = this.Factory.CreateRibbonButton();
             this.docGroup = this.Factory.CreateRibbonGroup();
             this.docDropDown = this.Factory.CreateRibbonDropDown();
+            this.newColorButton = this.Factory.CreateRibbonButton();
             this.MainTab.SuspendLayout();
             this.affichageGroup.SuspendLayout();
             this.couleurGroup.SuspendLayout();
@@ -84,6 +85,7 @@
             // couleurGroup
             // 
             this.couleurGroup.Items.Add(this.colorButton);
+            this.couleurGroup.Items.Add(this.newColorButton);
             this.couleurGroup.Label = "Couleur";
             this.couleurGroup.Name = "couleurGroup";
             // 
@@ -160,6 +162,17 @@
             this.docDropDown.SuperTip = "Permet d\'ouvrir rapidement les documents géré par l\'extension";
             this.docDropDown.SelectionChanged += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.docDropDown_SelectionChanged);
             // 
+            // newColorButton
+            // 
+            this.newColorButton.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
+            this.newColorButton.Enabled = false;
+            this.newColorButton.Label = "Nouvelle palette";
+            this.newColorButton.Name = "newColorButton";
+            this.newColorButton.OfficeImageId = "ArtisticEffectsDialog";
+            this.newColorButton.ShowImage = true;
+            this.newColorButton.SuperTip = "Imprime le document actuel";
+            this.newColorButton.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.newColorButton_Click);
+            // 
             // ControllerRibbon
             // 
             this.Name = "ControllerRibbon";
@@ -196,6 +209,7 @@
         internal Microsoft.Office.Tools.Ribbon.RibbonButton repareButton;
         internal Microsoft.Office.Tools.Ribbon.RibbonGroup docGroup;
         internal Microsoft.Office.Tools.Ribbon.RibbonDropDown docDropDown;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton newColorButton;
     }
 
     partial class ThisRibbonCollection

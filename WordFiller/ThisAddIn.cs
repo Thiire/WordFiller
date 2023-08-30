@@ -290,6 +290,10 @@ namespace WordFiller
             }
         }
 
+        public void ChangeWindowsColor()
+        {
+            getUserController().generateAllNewColor();
+        }
         public void repareDocument()
         {
             ArrayOfData Datas = new ArrayOfData();

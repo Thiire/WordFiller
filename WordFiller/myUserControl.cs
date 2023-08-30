@@ -201,6 +201,97 @@ namespace WordFiller
             this.FillRowLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 60F));
         }
 
+        private bool findPatternColor()
+        {
+            int totalR = 0;
+            int totalG = 0;
+            int totalB = 0;
+            int oldRColor = 0;
+            int oldGColor = 0;
+            int oldBColor = 0;
+            foreach (Tuple<string, Color> tuple in Params)
+            {
+                if (oldRColor != 0)
+                {
+                    totalR += tuple.Item2.R - oldRColor;
+                    totalG += tuple.Item2.G - oldGColor;
+                    totalB += tuple.Item2.B - oldBColor;
+                }
+                oldRColor = tuple.Item2.R;
+                oldGColor = tuple.Item2.G;
+                oldBColor = tuple.Item2.B;
+            }
+            Debug.WriteLine(Math.Abs(totalR) + " : " + Math.Abs(totalG) + " : " + Math.Abs(totalB));
+            return ((Math.Abs(totalR) >= 70 || totalR == 0) && (Math.Abs(totalG) >= 70 || totalG == 0) && (Math.Abs(totalB) >= 70 || totalB == 0));
+        }
+
+        private Color generateNewColor()
+        {
+            int minColor = 100;
+            int maxColor = 225;
+            return Color.FromArgb(rnd.Next(minColor, maxColor), rnd.Next(minColor, maxColor), rnd.Next(minColor, maxColor));
+        }
+
+        private Color generateNewLinkedColor(int rMin, int rMax, int gMin, int gMax, int bMin, int bMax, int redGrow, int greenGrow, int blueGrow, int index, int total)
+        {
+            int r = (redGrow == 0) ? (rMax + rMin) / 2 : (redGrow == 1) ? rMin + ((rMax - rMin) / total * (index + 1)) : rMin + ((rMax - rMin) / total * (total - index));
+            int g = (greenGrow == 0) ? (gMax + gMin) / 2 : (greenGrow == 1) ? gMin + ((gMax - gMin) / total * (index + 1)) : gMin + ((gMax - gMin) / total * (total - index));
+            int b = (blueGrow == 0) ? (bMax + bMin) / 2 : (blueGrow == 1) ? bMin + ((bMax - bMin) / total * (index + 1)) : bMin + ((bMax - bMin) / total * (total - index));
+
+            return Color.FromArgb(r, g, b);
+        }
+
+        private void updateRowColor()
+        {
+            foreach (Tuple<string, Color> item in Params)
+            {
+                AddRows[Params.IndexOf(item)].Item1.BackColor = item.Item2;
+                FillRows[Params.IndexOf(item)].Item1.BackColor = item.Item2;
+            }
+        }
+
+        public void generateAllNewColor()
+        {
+            int red = rnd.Next(0, 3);
+            int green = rnd.Next(0, 3);
+            int blue = rnd.Next(0, 3);
+            int rMin = rnd.Next(75, 126);
+            int rMax = rnd.Next(200, 226);
+            int gMin = rnd.Next(75, 126);
+            int gMax = rnd.Next(200, 226);
+            int bMin = rnd.Next(75, 126);
+            int bMax = rnd.Next(200, 226);
+            List<Tuple<string, Color>> newList = new List<Tuple<string, Color>>();
+
+            if (Params.Count == 0)
+                return;
+            if (Params.Count == 1)
+            {
+                newList.Add(new Tuple<string, Color>(Params[0].Item1, generateNewColor()));
+            } else if (findPatternColor())
+            {
+                foreach (Tuple<string, Color> pair in Params)
+                {
+                    newList.Add(new Tuple<string, Color>(pair.Item1, generateNewColor()));
+                }
+            } else
+            {
+                while (red == 0 && green == 0 && blue == 0)
+                {
+                    red = rnd.Next(0, 3);
+                    green = rnd.Next(0, 3);
+                    blue = rnd.Next(0, 3);
+                }
+                foreach (Tuple<string, Color> pair in Params)
+                {
+                    newList.Add(new Tuple<string, Color>(pair.Item1, generateNewLinkedColor(rMin, rMax, gMin, gMax, bMin, bMax, red, green, blue, Params.IndexOf(pair), Params.Count)));
+                }
+            }
+            Params = newList;
+            updateRowColor();
+            ApplyAllColors();
+        }
+
         private void AddNewButton_Click(object sender, EventArgs e)
         {
             if (AddNewTextBox.Text.Length == 0)
@@ -216,7 +307,7 @@ namespace WordFiller
                     return;
                 }
             }
-            Params.Add(new Tuple<string, Color>(AddNewTextBox.Text, Color.FromArgb(rnd.Next(100, 225), rnd.Next(100, 225), rnd.Next(100, 225))));
+            Params.Add(new Tuple<string, Color>(AddNewTextBox.Text, generateNewColor()));
             addFillRow(AddNewTextBox.Text, Params.Last().Item2);
             addAddRow(AddNewTextBox.Text, Params.Last().Item2, "0");
             AddNewTextBox.Clear();
@@ -275,7 +366,7 @@ namespace WordFiller
             {
                 if ((tuple.Item2.Start >= range.Start && tuple.Item2.End <= range.Start) || (tuple.Item2.Start >= range.End && tuple.Item2.End <= range.End))
                 {
-                    removeHyperLinkFromRange(tuple.Item2);
+                    removeHyperLink(tuple.Item2);
                     tuple.Item2.Shading.BackgroundPatternColor = WdColor.wdColorAutomatic;
                     foreach (Tuple<string, Color> label in Params)
                     {
@@ -290,7 +381,7 @@ namespace WordFiller
                 }
                 else if ((tuple.Item2.Start >= range.Start && tuple.Item2.Start <= range.End) || (tuple.Item2.End >= range.Start && tuple.Item2.End <= range.End))
                 {
-                    removeHyperLinkFromRange(tuple.Item2);
+                    removeHyperLink(tuple.Item2);
                     tuple.Item2.Shading.BackgroundPatternColor = WdColor.wdColorAutomatic;
                     foreach (Tuple<string, Color> label in Params)
                     {
@@ -400,7 +491,7 @@ namespace WordFiller
             }
         }
 
-        private bool removeHyperLinkFromRange(Range range)
+        private bool removeHyperLink(Range range)
         {
             foreach (Hyperlink hyper in Globals.ThisAddIn.Application.ActiveDocument.Hyperlinks)
             {

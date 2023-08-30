@@ -39,6 +39,7 @@ namespace WordFiller
             this.colorButton.Enabled = enabled;
             this.printButton.Enabled = enabled;
             this.saveButton.Enabled = enabled;
+            this.newColorButton.Enabled = enabled;
         }
 
         public void UpdateDocumentsList(string fileName)
@@ -96,6 +97,11 @@ namespace WordFiller
         private void docDropDown_SelectionChanged(object sender, RibbonControlEventArgs e)
         {
             Globals.ThisAddIn.openFileFromList(this.docDropDown.SelectedItem.Label);
+        }
+
+        private void newColorButton_Click(object sender, RibbonControlEventArgs e)
+        {
+            Globals.ThisAddIn.ChangeWindowsColor();
         }
     }
 }
