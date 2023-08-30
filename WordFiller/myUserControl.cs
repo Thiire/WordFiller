@@ -275,6 +275,7 @@ namespace WordFiller
             {
                 if ((tuple.Item2.Start >= range.Start && tuple.Item2.End <= range.Start) || (tuple.Item2.Start >= range.End && tuple.Item2.End <= range.End))
                 {
+                    removeHyperLinkFromRange(tuple.Item2);
                     tuple.Item2.Shading.BackgroundPatternColor = WdColor.wdColorAutomatic;
                     foreach (Tuple<string, Color> label in Params)
                     {
@@ -289,6 +290,7 @@ namespace WordFiller
                 }
                 else if ((tuple.Item2.Start >= range.Start && tuple.Item2.Start <= range.End) || (tuple.Item2.End >= range.Start && tuple.Item2.End <= range.End))
                 {
+                    removeHyperLinkFromRange(tuple.Item2);
                     tuple.Item2.Shading.BackgroundPatternColor = WdColor.wdColorAutomatic;
                     foreach (Tuple<string, Color> label in Params)
                     {
@@ -311,14 +313,6 @@ namespace WordFiller
                 if (tuple.Item1 == rangeName)
                 {
                     tuple.Item2.Shading.BackgroundPatternColor = WdColor.wdColorAutomatic;
-                    foreach (Hyperlink hyper in Globals.ThisAddIn.Application.ActiveDocument.Hyperlinks)
-                    {
-                        if (hyper.ScreenTip == tuple.Item1)
-                        {
-                            hyper.Delete();
-                            break;
-                        }
-                    }
                     ParamsRange.Remove(tuple);
                     RemoveAllRange(rangeName);
                     return;
@@ -333,6 +327,7 @@ namespace WordFiller
                 if (tuple.Item4.Equals(sender))
                 {
                     if (!isRangeStillValid(Params[AddRows.IndexOf(tuple)].Item1)) return;
+                    removeHyperLink(Params[AddRows.IndexOf(tuple)].Item1);
                     RemoveArbitraryRow(this.FillRowLayoutPanel, AddRows.IndexOf(tuple));
                     RemoveArbitraryRow(this.AddRowLayoutPanel, AddRows.IndexOf(tuple) + 1);
 
@@ -347,6 +342,7 @@ namespace WordFiller
             {
                 if (tuple.Item4.Equals(sender))
                 {
+                    removeHyperLink(Params[AddRows.IndexOf(tuple)].Item1);
                     RemoveArbitraryRow(this.FillRowLayoutPanel, AddRows.IndexOf(tuple));
                     RemoveArbitraryRow(this.AddRowLayoutPanel, AddRows.IndexOf(tuple) + 1);
 
@@ -404,6 +400,44 @@ namespace WordFiller
             }
         }
 
+        private bool removeHyperLinkFromRange(Range range)
+        {
+            foreach (Hyperlink hyper in Globals.ThisAddIn.Application.ActiveDocument.Hyperlinks)
+            {
+                if (hyper.Range.Start == range.Start && hyper.Range.End - 1 == range.End)
+                {
+                    hyper.Delete();
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private bool removeHyperLink(string ParamsName)
+        {
+            foreach (Hyperlink hyper in Globals.ThisAddIn.Application.ActiveDocument.Hyperlinks)
+            {
+                if (hyper.ScreenTip == ParamsName)
+                {
+                    hyper.Delete();
+                    return removeHyperLink(ParamsName);
+                }
+            }
+            return true;
+        }
+
+        private bool setHyperLink(string ParamsName)
+        {
+            foreach (Tuple<string, Range> tuple in ParamsRange)
+            {
+                if (tuple.Item1 == ParamsName)
+                {
+                    Globals.ThisAddIn.Application.ActiveDocument.Hyperlinks.Add(tuple.Item2, ".\\", ParamsName, ParamsName);
+                }
+            }
+            return true;
+        }
+
         private void ChangeParams(string ParamsName, string newName)
         {
             foreach (Tuple<string, Word.Range> tuple in ParamsRange)
@@ -431,7 +465,9 @@ namespace WordFiller
             }
             foreach (Tuple<TableLayoutPanel, Label, TextBox> tuple in FillRows)
             {
+                removeHyperLink(tuple.Item2.Text);
                 ChangeParams(tuple.Item2.Text, tuple.Item3.Text);
+                setHyperLink(tuple.Item2.Text);
             }
         }
 
@@ -470,29 +506,16 @@ namespace WordFiller
         public bool RemoveAllColors()
         {
             bool swaped = false;
-            colorMode = false;
+            colorMode = true;
             foreach (Tuple<string, Word.Range> tuple in ParamsRange)
             {
                 if (!isRangeStillValid(tuple.Item1)) return false;
             }
             foreach (Tuple<string, Word.Range> tuple in ParamsRange)
             {
-                foreach (Tuple<string, Color> color in Params)
-                {
-                    if (tuple.Item1 == color.Item1)
-                    {
-                        tuple.Item2.Font.Shading.BackgroundPatternColor = WdColor.wdColorAutomatic;
-                        foreach (Hyperlink hyper in Globals.ThisAddIn.Application.ActiveDocument.Hyperlinks)
-                        {
-                            if (hyper.ScreenTip == tuple.Item1)
-                            {
-                                hyper.Delete();
-                                break;
-                            }
-                        }
-                        swaped = true;
-                    }
-                }
+                swaped = true;
+                removeHyperLink(tuple.Item1);
+                tuple.Item2.Font.Shading.BackgroundPatternColor = WdColor.wdColorAutomatic;
                 colorMode = false;
             }
             if (!swaped && Params.Count != 0)
@@ -517,9 +540,9 @@ namespace WordFiller
                     if (tuple.Item1 == color.Item1)
                     {
                         tuple.Item2.Font.Shading.BackgroundPatternColor = (Microsoft.Office.Interop.Word.WdColor)(color.Item2.R + 0x100 * color.Item2.G + 0x10000 * color.Item2.B);
-                        Globals.ThisAddIn.Application.ActiveDocument.Hyperlinks.Add(tuple.Item2, ".\\", color.Item1, color.Item1);
                     }
                 }
+                setHyperLink(tuple.Item1);
                 swaped = true;
                 colorMode = true;
             }

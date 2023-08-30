@@ -201,6 +201,8 @@ namespace WordFiller
 
         private void updateFileList()
         {
+            if (!File.Exists("C:\\ProgramData\\Storage.xml"))
+            { return; }
             ArrayOfData Datas = new ArrayOfData();
             XmlSerializer xs = new XmlSerializer(typeof(ArrayOfData));
             using (FileStream stream = File.OpenRead("C:\\ProgramData\\Storage.xml"))
